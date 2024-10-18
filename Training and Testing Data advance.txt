@@ -1,0 +1,77 @@
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Sample Data (Replace with your dataset)
+data = {
+    'HeartRate': [72, 80, 65, 90, 100, 75, 85, 60, 82, 88, 92, 76],
+    'Temperature': [98.6, 99.1, 97.9, 100.5, 101.2, 98.3, 98.9, 97.5, 98.7, 99.0, 100.1, 98.2],
+    'BloodPressure': [120, 130, 115, 140, 145, 118, 135, 110, 125, 138, 142, 119],
+    'OxygenSaturation': [98, 97, 99, 95, 94, 98, 96, 99, 98, 97, 95, 96],
+    'Condition': [0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0]  # Labels: 0 = Healthy, 1 = Not Healthy
+}
+
+# Load the data into a pandas DataFrame
+df = pd.DataFrame(data)
+
+# Split the data into features (X) and target (y)
+X = df.drop('Condition', axis=1)
+y = df['Condition']
+
+# Step 1: Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Step 2: Preprocessing - Standardize the data
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Step 3: Initialize a RandomForest model
+model = RandomForestClassifier(random_state=42)
+
+# Step 4: Hyperparameter Tuning using GridSearchCV
+param_grid = {
+    'n_estimators': [100, 200, 300],  # Number of trees in the forest
+    'max_depth': [None, 10, 20, 30],  # Maximum depth of the tree
+    'min_samples_split': [2, 5, 10],  # Minimum number of samples required to split an internal node
+    'min_samples_leaf': [1, 2, 4]     # Minimum number of samples required to be at a leaf node
+}
+
+grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=5, n_jobs=-1, verbose=2)
+grid_search.fit(X_train, y_train)
+
+# Step 5: Best Parameters from Grid Search
+best_model = grid_search.best_estimator_
+
+# Step 6: Train the best model on the training data
+best_model.fit(X_train, y_train)
+
+# Step 7: Test the model on the test data
+y_pred = best_model.predict(X_test)
+
+# Step 8: Evaluation Metrics
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+
+# AUC-ROC Score
+y_pred_proba = best_model.predict_proba(X_test)[:, 1]  # Get probabilities for ROC curve
+roc_auc = roc_auc_score(y_test, y_pred_proba)
+print(f"ROC AUC Score: {roc_auc:.2f}")
+
+# Plot Confusion Matrix
+plt.figure(figsize=(6,4))
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt="d", cmap="Blues", cbar=False)
+plt.title("Confusion Matrix")
+plt.ylabel("Actual")
+plt.xlabel("Predicted")
+plt.show()

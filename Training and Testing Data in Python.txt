@@ -1,0 +1,63 @@
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+
+# Example dataset (replace with real data)
+data = {
+    'feature1': np.random.rand(100),
+    'feature2': np.random.rand(100),
+    'feature3': np.random.rand(100),
+    'target': np.random.choice([0, 1], 100)
+}
+
+df = pd.DataFrame(data)
+
+# Features (X) and target (y)
+X = df[['feature1', 'feature2', 'feature3']]  # Feature columns
+y = df['target']  # Target column
+
+# Split the data into training and testing sets (70% train, 30% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Feature scaling (normalization)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Initialize the model (Random Forest in this case)
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+# Train the model
+model.fit(X_train_scaled, y_train)
+
+# Test the model
+y_pred = model.predict(X_test_scaled)
+
+# Evaluate the model using various metrics
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+# Cross-validation (optional: assess the model with 5-fold cross-validation)
+cv_scores = cross_val_score(model, X_train_scaled, y_train, cv=5)
+
+# Print results
+print(f"Accuracy: {accuracy * 100:.2f}%")
+print(f"Precision: {precision:.2f}")
+print(f"Recall: {recall:.2f}")
+print(f"F1 Score: {f1:.2f}")
+print("Confusion Matrix:")
+print(conf_matrix)
+
+# Print detailed classification report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Cross-validation score
+print(f"\nCross-Validation Accuracy: {np.mean(cv_scores) * 100:.2f}%")

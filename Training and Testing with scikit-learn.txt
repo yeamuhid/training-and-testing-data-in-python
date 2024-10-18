@@ -1,0 +1,49 @@
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+# Sample Data (Replace with your dataset)
+# Assuming columns represent sensor data: Heart rate, Temperature, Blood Pressure, etc.
+# 'Condition' is the label column indicating if the person is healthy (0) or has some condition (1).
+data = {
+    'HeartRate': [72, 80, 65, 90, 100, 75, 85, 60],
+    'Temperature': [98.6, 99.1, 97.9, 100.5, 101.2, 98.3, 98.9, 97.5],
+    'BloodPressure': [120, 130, 115, 140, 145, 118, 135, 110],
+    'OxygenSaturation': [98, 97, 99, 95, 94, 98, 96, 99],
+    'Condition': [0, 1, 0, 1, 1, 0, 1, 0]  # Labels
+}
+
+# Load the data into a pandas DataFrame
+df = pd.DataFrame(data)
+
+# Split the data into features (X) and target (y)
+X = df.drop('Condition', axis=1)
+y = df['Condition']
+
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Scale the data (optional but recommended for certain algorithms)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Train a model (Random Forest Classifier)
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Test the model
+y_pred = model.predict(X_test)
+
+# Evaluate the performance
+accuracy = accuracy_score(y_test, y_pred)
+report = classification_report(y_test, y_pred)
+
+# Print results
+print(f"Accuracy: {accuracy * 100:.2f}%")
+print("Classification Report:")
+print(report)
